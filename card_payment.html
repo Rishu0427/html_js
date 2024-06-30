@@ -56,6 +56,23 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
+        #payment-plan table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #payment-plan th,
+        #payment-plan td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        #payment-plan th {
+            background: #f0f0f0;
+        }
+
         #payment-plan h3 {
             margin: 0 0 10px 0;
         }
@@ -147,7 +164,6 @@
         }
 
         function calculatePayments() {
-        // console.log("calc called");
             const cards = [];
             let isValid = true;
 
@@ -208,10 +224,21 @@
         }
 
         function calculatePaymentPlan(cards, additionalPayment) {
-            let output = '';
+            let output = `
+                <h3>Payment Plan</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Card Name</th>
+                            <th>Paid Amount ($)</th>
+                            <th>Remaining Debt ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
             let month = 1;
             while (cards.some(card => card.debt > 0)) {
-                output += `<h3>Month ${month}</h3>`;
                 let remainingAdditionalPayment = additionalPayment;
                 for (const card of cards) {
                     if (card.debt > 0) {
@@ -219,11 +246,22 @@
                         const payment = Math.min(card.minPayment + remainingAdditionalPayment, card.debt + interest);
                         card.debt = card.debt + interest - payment;
                         remainingAdditionalPayment = Math.max(0, remainingAdditionalPayment - (payment - card.minPayment));
-                        output += `<p>${card.name}: Paid $${payment.toFixed(2)}, Remaining debt: $${card.debt.toFixed(2)}</p>`;
+                        output += `
+                            <tr>
+                                <td>${month}</td>
+                                <td>${card.name}</td>
+                                <td>${payment.toFixed(2)}</td>
+                                <td>${card.debt.toFixed(2)}</td>
+                            </tr>
+                        `;
                     }
                 }
                 month++;
             }
+            output += `
+                    </tbody>
+                </table>
+            `;
             return output;
         }
     </script>
