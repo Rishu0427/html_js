@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Debt Payment Calculator</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .card-input {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .card-input h3 {
+            margin-top: 0;
+        }
+
+        .card-input label {
+            font-weight: bold;
+        }
+
+        button, select {
+            margin-top: 10px;
+        }
+
+        #payment-plan {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #payment-plan h3 {
+            margin: 0 0 10px 0;
+        }
+
+        #payment-plan p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="text-center">Credit Card Debt Payment Calculator</h1>
+        <div id="cards-container">
+            <!-- Credit Card Input Fields -->
+            <div class="card-input" id="card1">
+                <h3>Credit Card 1</h3>
+                <div class="form-group">
+                    <label for="name1">Card Name</label>
+                    <input type="text" class="form-control" id="name1" placeholder="Enter card name">
+                </div>
+                <div class="form-group">
+                    <label for="debt1">Total Debt Amount</label>
+                    <input type="number" class="form-control" id="debt1" placeholder="Enter total debt amount">
+                </div>
+                <div class="form-group">
+                    <label for="rate1">Interest Rate (%)</label>
+                    <input type="number" class="form-control" id="rate1" placeholder="Enter interest rate">
+                </div>
+                <div class="form-group">
+                    <label for="minPayment1">Minimum Payment</label>
+                    <input type="number" class="form-control" id="minPayment1" placeholder="Enter minimum payment">
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="addCard()">Add Another Card</button>
+        <br><br>
+        <div class="form-group">
+            <label for="additionalPayment">Additional Monthly Payment</label>
+            <input type="number" class="form-control" id="additionalPayment" placeholder="Enter additional monthly payment">
+        </div>
+        <div class="form-group">
+            <label for="strategy">Payment Strategy</label>
+            <select class="form-control" id="strategy">
+                <option value="snowball">Snowball Method</option>
+                <option value="avalanche">Avalanche Method</option>
+                <option value="custom">Custom Payment Allocation</option>
+            </select>
+        </div>
+        <button class="btn btn-success" onclick="calculatePayments()">Calculate Payments</button>
+        <div id="payment-plan"></div>
+    </div>
+    <script>
+        let cardCount = 1;
+
+        function addCard() {
+            cardCount++;
+            const container = document.getElementById('cards-container');
+            const cardDiv = document.createElement('div');
+            cardDiv.classList.add('card-input');
+            cardDiv.id = `card${cardCount}`;
+            cardDiv.innerHTML = `
+                <h3>Credit Card ${cardCount}</h3>
+                <div class="form-group">
+                    <label for="name${cardCount}">Card Name</label>
+                    <input type="text" class="form-control" id="name${cardCount}" placeholder="Enter card name">
+                </div>
+                <div class="form-group">
+                    <label for="debt${cardCount}">Total Debt Amount</label>
+                    <input type="number" class="form-control" id="debt${cardCount}" placeholder="Enter total debt amount">
+                </div>
+                <div class="form-group">
+                    <label for="rate${cardCount}">Interest Rate (%)</label>
+                    <input type="number" class="form-control" id="rate${cardCount}" placeholder="Enter interest rate">
+                </div>
+                <div class="form-group">
+                    <label for="minPayment${cardCount}">Minimum Payment</label>
+                    <input type="number" class="form-control" id="minPayment${cardCount}" placeholder="Enter minimum payment">
+                </div>
+            `;
+            container.appendChild(cardDiv);
+        }
+
+        function calculatePayments() {
+            const cards = [];
+            for (let i = 1; i <= cardCount; i++) {
+                const card = {
+                    name: document.getElementById(`name${i}`).value,
+                    debt: parseFloat(document.getElementById(`debt${i}`).value),
+                    rate: parseFloat(document.getElementById(`rate${i}`).value),
+                    minPayment: parseFloat(document.getElementById(`minPayment${i}`).value)
+                };
+                cards.push(card);
+            }
+            const additionalPayment = parseFloat(document.getElementById('additionalPayment').value);
+            const strategy = document.getElementById('strategy').value;
+
+            let paymentPlan = '';
+            switch (strategy) {
+                case 'snowball':
+                    paymentPlan = calculateSnowball(cards, additionalPayment);
+                    break;
+                case 'avalanche':
+                    paymentPlan = calculateAvalanche(cards, additionalPayment);
+                    break;
+                case 'custom':
+                    paymentPlan = calculateCustom(cards, additionalPayment);
+                    break;
+            }
+            document.getElementById('payment-plan').innerHTML = paymentPlan;
+        }
+
+        function calculateSnowball(cards, additionalPayment) {
+            cards.sort((a, b) => a.debt - b.debt);
+            return calculatePaymentPlan(cards, additionalPayment);
+        }
+
+        function calculateAvalanche(cards, additionalPayment) {
+            cards.sort((a, b) => b.rate - a.rate);
+            return calculatePaymentPlan(cards, additionalPayment);
+        }
+
+        function calculateCustom(cards, additionalPayment) {
+            return calculatePaymentPlan(cards, additionalPayment);
+        }
+
+        function calculatePaymentPlan(cards, additionalPayment) {
+            let output = '';
+            let month = 1;
+            while (cards.some(card => card.debt > 0)) {
+                output += `<h3>Month ${month}</h3>`;
+                let remainingAdditionalPayment = additionalPayment;
+                for (const card of cards) {
+                    if (card.debt > 0) {
+                        const interest = (card.rate / 100 / 12) * card.debt;
+                        const payment = Math.min(card.minPayment + remainingAdditionalPayment, card.debt + interest);
+                        card.debt = card.debt + interest - payment;
+                        remainingAdditionalPayment = Math.max(0, remainingAdditionalPayment - (payment - card.minPayment));
+                        output += `<p>${card.name}: Paid $${payment.toFixed(2)}, Remaining debt: $${card.debt.toFixed(2)}</p>`;
+                    }
+                }
+                month++;
+            }
+            return output;
+        }
+    </script>
+</body>
+
+</html>
