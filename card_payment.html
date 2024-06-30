@@ -26,6 +26,7 @@
             border: 1px solid #ccc;
             border-radius: 8px;
             background: #fafafa;
+            position: relative;
         }
 
         .card-input h3 {
@@ -36,7 +37,14 @@
             font-weight: bold;
         }
 
-        button, select {
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        button,
+        select {
             margin-top: 10px;
         }
 
@@ -65,21 +73,22 @@
             <!-- Credit Card Input Fields -->
             <div class="card-input" id="card1">
                 <h3>Credit Card 1</h3>
+                <button class="btn btn-danger delete-btn" onclick="deleteCard(1)">Delete</button>
                 <div class="form-group">
                     <label for="name1">Card Name</label>
-                    <input type="text" class="form-control" id="name1" placeholder="Enter card name">
+                    <input type="text" class="form-control" id="name1" placeholder="Enter card name" required>
                 </div>
                 <div class="form-group">
                     <label for="debt1">Total Debt Amount</label>
-                    <input type="number" class="form-control" id="debt1" placeholder="Enter total debt amount">
+                    <input type="number" class="form-control" id="debt1" placeholder="Enter total debt amount" required>
                 </div>
                 <div class="form-group">
                     <label for="rate1">Interest Rate (%)</label>
-                    <input type="number" class="form-control" id="rate1" placeholder="Enter interest rate">
+                    <input type="number" class="form-control" id="rate1" placeholder="Enter interest rate" required>
                 </div>
                 <div class="form-group">
                     <label for="minPayment1">Minimum Payment</label>
-                    <input type="number" class="form-control" id="minPayment1" placeholder="Enter minimum payment">
+                    <input type="number" class="form-control" id="minPayment1" placeholder="Enter minimum payment" required>
                 </div>
             </div>
         </div>
@@ -111,38 +120,61 @@
             cardDiv.id = `card${cardCount}`;
             cardDiv.innerHTML = `
                 <h3>Credit Card ${cardCount}</h3>
+                <button class="btn btn-danger delete-btn" onclick="deleteCard(${cardCount})">Delete</button>
                 <div class="form-group">
                     <label for="name${cardCount}">Card Name</label>
-                    <input type="text" class="form-control" id="name${cardCount}" placeholder="Enter card name">
+                    <input type="text" class="form-control" id="name${cardCount}" placeholder="Enter card name" required>
                 </div>
                 <div class="form-group">
                     <label for="debt${cardCount}">Total Debt Amount</label>
-                    <input type="number" class="form-control" id="debt${cardCount}" placeholder="Enter total debt amount">
+                    <input type="number" class="form-control" id="debt${cardCount}" placeholder="Enter total debt amount" required>
                 </div>
                 <div class="form-group">
                     <label for="rate${cardCount}">Interest Rate (%)</label>
-                    <input type="number" class="form-control" id="rate${cardCount}" placeholder="Enter interest rate">
+                    <input type="number" class="form-control" id="rate${cardCount}" placeholder="Enter interest rate" required>
                 </div>
                 <div class="form-group">
                     <label for="minPayment${cardCount}">Minimum Payment</label>
-                    <input type="number" class="form-control" id="minPayment${cardCount}" placeholder="Enter minimum payment">
+                    <input type="number" class="form-control" id="minPayment${cardCount}" placeholder="Enter minimum payment" required>
                 </div>
             `;
             container.appendChild(cardDiv);
         }
 
+        function deleteCard(cardId) {
+            const cardDiv = document.getElementById(`card${cardId}`);
+            cardDiv.remove();
+        }
+
         function calculatePayments() {
+        // console.log("calc called");
             const cards = [];
+            let isValid = true;
+
             for (let i = 1; i <= cardCount; i++) {
-                const card = {
-                    name: document.getElementById(`name${i}`).value,
-                    debt: parseFloat(document.getElementById(`debt${i}`).value),
-                    rate: parseFloat(document.getElementById(`rate${i}`).value),
-                    minPayment: parseFloat(document.getElementById(`minPayment${i}`).value)
-                };
-                cards.push(card);
+                const cardDiv = document.getElementById(`card${i}`);
+                if (cardDiv) {
+                    const card = {
+                        name: document.getElementById(`name${i}`).value,
+                        debt: parseFloat(document.getElementById(`debt${i}`).value),
+                        rate: parseFloat(document.getElementById(`rate${i}`).value),
+                        minPayment: parseFloat(document.getElementById(`minPayment${i}`).value)
+                    };
+
+                    if (!card.name || isNaN(card.debt) || isNaN(card.rate) || isNaN(card.minPayment)) {
+                        alert(`Please fill out all fields for Credit Card ${i}.`);
+                        isValid = false;
+                        break;
+                    }
+
+                    cards.push(card);
+                }
             }
-            const additionalPayment = parseFloat(document.getElementById('additionalPayment').value);
+
+            if (!isValid) return;
+
+            const additionalPaymentInput = document.getElementById('additionalPayment').value;
+            const additionalPayment = additionalPaymentInput ? parseFloat(additionalPaymentInput) : 0;
             const strategy = document.getElementById('strategy').value;
 
             let paymentPlan = '';
@@ -171,6 +203,7 @@
         }
 
         function calculateCustom(cards, additionalPayment) {
+            // For the custom allocation, we'll keep the original order of the cards
             return calculatePaymentPlan(cards, additionalPayment);
         }
 
